@@ -21,4 +21,17 @@ public interface FrontierService {
      * @param url The URL to mark.
      */
     void markVisited(String url);
+
+    /**
+     * Checks if the global crawl limit has been reached.
+     * @param maxPages The maximum number of pages allowed.
+     * @return true if limit reached, false otherwise.
+     */
+    boolean isLimitReached(long maxPages);
+
+    /**
+     * Gets the total number of pages crawled so far.
+     * @return count
+     */
+    long getCrawlCount();
 }

@@ -19,6 +19,7 @@ public class DistributedFrontierService implements FrontierService {
     private final StringRedisTemplate redisTemplate;
 
     private static final String VISITED_SET_KEY = "spiderx:visited_urls";
+    private static final String CRAWL_COUNT_KEY = "spiderx:crawl_count";
     private static final String TOPIC_HIGH_PRIORITY = "spiderx.crawl.high";
     private static final String TOPIC_DEFAULT_PRIORITY = "spiderx.crawl.default";
 
@@ -51,6 +52,20 @@ public class DistributedFrontierService implements FrontierService {
     @Override
     public void markVisited(String url) {
         redisTemplate.opsForSet().add(VISITED_SET_KEY, url);
+        redisTemplate.opsForValue().increment(CRAWL_COUNT_KEY);
+    }
+
+    @Override
+    public boolean isLimitReached(long maxPages) {
+        String countStr = redisTemplate.opsForValue().get(CRAWL_COUNT_KEY);
+        long count = countStr != null ? Long.parseLong(countStr) : 0;
+        return count >= maxPages;
+    }
+
+    @Override
+    public long getCrawlCount() {
+        String countStr = redisTemplate.opsForValue().get(CRAWL_COUNT_KEY);
+        return countStr != null ? Long.parseLong(countStr) : 0;
     }
 
     private String getDomain(String url) {

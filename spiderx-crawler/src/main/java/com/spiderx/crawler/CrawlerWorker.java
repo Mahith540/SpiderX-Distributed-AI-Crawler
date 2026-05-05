@@ -34,9 +34,20 @@ public class CrawlerWorker {
 
     private static final String INDEX_TOPIC = "spiderx.index.tasks";
     private static final String TARGET_CATEGORY = "technology"; // Default category for now
+    
+    private static final int MAX_DEPTH = 2; // Only crawl up to 2 levels deep
+    private static final long MAX_PAGES = 500; // Stop after 500 pages
 
     @KafkaListener(topics = {"spiderx.crawl.high", "spiderx.crawl.default"}, groupId = "spiderx-crawler-group")
     public void onCrawlRequest(CrawlRequest request) {
+        if (frontierService.isLimitReached(MAX_PAGES)) {
+            log.info("Crawl limit reached ({} pages). Skipping: {}", MAX_PAGES, request.getUrl());
+            return;
+        }
+        if (request.getDepth() > MAX_DEPTH) {
+            log.debug("Max depth reached for: {}", request.getUrl());
+            return;
+        }
         fetcherExecutor.submit(() -> crawl(request));
     }
 
